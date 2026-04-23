@@ -4,18 +4,20 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 
-const API_URL = "http://localhost:3000"; // <--- Cambiaremos esto cuando subamos el backend
-
-// 👇 1. LIBRERÍAS DE SEGURIDAD AGREGADAS 👇
+// 👇 MODIFICACIÓN: Usamos la clave de las variables de entorno o la de respaldo
 const jwt = require("jsonwebtoken");
-const CLAVE_JWT = "xuper_firma_secreta_2026";
+const CLAVE_JWT = process.env.CLAVE_JWT || "xuper_firma_secreta_2026";
 
 const app = express();
 app.use(express.json());
+
+// 👇 MODIFICACIÓN: CORS abierto para que tu página de Vercel pueda entrar sin bloqueos
 app.use(cors());
+
 app.use("/uploads", express.static("uploads"));
 
-const puerto = process.env.PORT || 3000;
+// 👇 MODIFICACIÓN: Render asigna el puerto automáticamente
+const puerto = process.env.PORT || 10000;
 const uri = process.env.MONGO_URI;
 
 mongoose
@@ -220,5 +222,5 @@ app.post("/api/login", (req, res) => {
 
 // Enceder el servidor
 app.listen(puerto, () => {
-  console.log(`🚀 Servidor en http://localhost:${puerto}`);
+  console.log(`🚀 Servidor corriendo en el puerto ${puerto}`);
 });
