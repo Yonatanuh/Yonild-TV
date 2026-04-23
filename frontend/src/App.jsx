@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 // 👇 VARIABLE MAESTRA AGREGADA 👇
-const API_URL = "https://yonild-tv-xuper.onrender.com";
+const API_URL = "https://yonild-tv-cuper.onrender.com";
 
 // ==========================================
 // COMPONENTE DE MONETIZACIÓN
