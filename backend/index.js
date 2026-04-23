@@ -102,6 +102,13 @@ const verificarToken = (req, res, next) => {
 // 3. RUTAS DE LA API
 // ==========================================
 
+// 👇 NUEVA RUTA: Bienvenida para evitar el error "Cannot GET /"
+app.get("/", (req, res) => {
+  res.send(
+    "🚀 El motor de Yonild-TV está encendido y volando. ¡Todo bien, jefe!",
+  );
+});
+
 // Ruta POST: Subir nueva app (PROTEGIDA CON EL CADENERO)
 app.post(
   "/api/apks",
