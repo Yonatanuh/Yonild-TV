@@ -4,20 +4,20 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 const fs = require("fs");
+const path = require("path");
 
-// 👇 MODIFICACIÓN: Usamos la clave de las variables de entorno o la de respaldo
 const jwt = require("jsonwebtoken");
 const CLAVE_JWT = process.env.CLAVE_JWT || "xuper_firma_secreta_2026";
 
 const app = express();
 app.use(express.json());
 
-// 👇 MODIFICACIÓN: CORS abierto para que tu página de Vercel pueda entrar sin bloqueos
 app.use(cors());
 
-app.use("/uploads", express.static("uploads"));
+// Definimos el GPS exacto para la carpeta
+const rutaUploads = path.join(__dirname, "uploads");
+app.use("/uploads", express.static(rutaUploads));
 
-// 👇 MODIFICACIÓN: Render asigna el puerto automáticamente
 const puerto = process.env.PORT || 10000;
 const uri = process.env.MONGO_URI;
 
@@ -26,18 +26,17 @@ mongoose
   .then(() => console.log("🟢 ¡Conectado a MongoDB Atlas!"))
   .catch((error) => console.error("🔴 Error de conexión:", error));
 
-// 👇 NUEVO: Obligar al motor a crear la carpeta si Render la borró
-if (!fs.existsSync("./uploads")) {
-  fs.mkdirSync("./uploads");
-  console.log("📁 Carpeta 'uploads' creada automáticamente.");
-}
-
 // ==========================================
-// CONFIGURACIÓN DE SUBIDA DE ARCHIVOS (MULTER)
+// CONFIGURACIÓN DE SUBIDA (JUSTO A TIEMPO)
 // ==========================================
 const almacenamiento = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    // 👇 EL TRUCO HACKER: Verificamos y creamos la carpeta en el instante exacto que llega el archivo
+    if (!fs.existsSync(rutaUploads)) {
+      fs.mkdirSync(rutaUploads, { recursive: true });
+      console.log("📁 Carpeta 'uploads' creada JUSTO A TIEMPO.");
+    }
+    cb(null, rutaUploads);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -71,15 +70,15 @@ const apkSchema = new mongoose.Schema(
       required: [true, "El peso es obligatorio"],
     },
     archivoApk: {
-      type: String, // Multer llenará esto
+      type: String,
     },
     icono: {
-      type: String, // Multer llenará esto
+      type: String,
     },
     descargas: { type: Number, default: 0 },
   },
   {
-    timestamps: true, // Anti-hackers: Registra la fecha exacta de creación y modificación
+    timestamps: true,
   },
 );
 
@@ -101,22 +100,20 @@ const verificarToken = (req, res, next) => {
         .status(401)
         .json({ exito: false, mensaje: "Pase VIP falso o expirado" });
     }
-    next(); // Si el pase es válido, lo deja pasar a la ruta
+    next();
   });
 };
 
 // ==========================================
 // 3. RUTAS DE LA API
 // ==========================================
-
-// 👇 NUEVA RUTA: Bienvenida para evitar el error "Cannot GET /"
 app.get("/", (req, res) => {
   res.send(
     "🚀 El motor de Yonild-TV está encendido y volando. ¡Todo bien, jefe!",
   );
 });
 
-// Ruta POST: Subir nueva app (PROTEGIDA CON EL CADENERO)
+// Ruta POST: Subir nueva app
 app.post(
   "/api/apks",
   verificarToken,
@@ -152,7 +149,7 @@ app.post(
   },
 );
 
-// Ruta GET: Pedir la lista de apps (PÚBLICA: No lleva cadenero)
+// Ruta GET: Pedir la lista de apps
 app.get("/api/apks", async (req, res) => {
   try {
     const lista = await Apk.find();
@@ -162,7 +159,7 @@ app.get("/api/apks", async (req, res) => {
   }
 });
 
-// Ruta PUT: Actualizar una app existente (PROTEGIDA CON EL CADENERO)
+// Ruta PUT: Actualizar una app existente
 app.put(
   "/api/apks/:id",
   verificarToken,
@@ -192,7 +189,7 @@ app.put(
   },
 );
 
-// Ruta DELETE: Borrar una app (PROTEGIDA CON EL CADENERO)
+// Ruta DELETE: Borrar una app
 app.delete("/api/apks/:id", verificarToken, async (req, res) => {
   try {
     await Apk.findByIdAndDelete(req.params.id);
@@ -202,7 +199,7 @@ app.delete("/api/apks/:id", verificarToken, async (req, res) => {
   }
 });
 
-// Ruta PATCH: Sumar una descarga (PÚBLICA: No lleva cadenero)
+// Ruta PATCH: Sumar una descarga
 app.patch("/api/apks/:id/descarga", async (req, res) => {
   try {
     const appActualizada = await Apk.findByIdAndUpdate(
@@ -217,24 +214,21 @@ app.patch("/api/apks/:id/descarga", async (req, res) => {
 });
 
 // ==========================================
-// 👇 4. RUTA DE SEGURIDAD (Login) ACTUALIZADA 👇
+// 4. RUTA DE SEGURIDAD (Login)
 // ==========================================
 app.post("/api/login", (req, res) => {
   const contrasenaSecreta = "xuper2026";
 
   if (req.body.password === contrasenaSecreta) {
-    // ¡Generamos el pase VIP criptográfico que dura 2 horas!
     const token = jwt.sign({ rol: "administrador" }, CLAVE_JWT, {
       expiresIn: "2h",
     });
-
     res.json({ exito: true, mensaje: "Bienvenido jefe", token: token });
   } else {
     res.status(401).json({ exito: false, mensaje: "Intruso detectado" });
   }
 });
 
-// Enceder el servidor
 app.listen(puerto, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${puerto}`);
 });
