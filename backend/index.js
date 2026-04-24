@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
+const fs = require("fs");
 
 // 👇 MODIFICACIÓN: Usamos la clave de las variables de entorno o la de respaldo
 const jwt = require("jsonwebtoken");
@@ -24,6 +25,12 @@ mongoose
   .connect(uri)
   .then(() => console.log("🟢 ¡Conectado a MongoDB Atlas!"))
   .catch((error) => console.error("🔴 Error de conexión:", error));
+
+// 👇 NUEVO: Obligar al motor a crear la carpeta si Render la borró
+if (!fs.existsSync("./uploads")) {
+  fs.mkdirSync("./uploads");
+  console.log("📁 Carpeta 'uploads' creada automáticamente.");
+}
 
 // ==========================================
 // CONFIGURACIÓN DE SUBIDA DE ARCHIVOS (MULTER)
