@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
-// 👇 VARIABLE MAESTRA AGREGADA 👇
+// 🚩 DIRECCIÓN LOCAL (Úsala para probar en tu PC)
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
 // ==========================================
@@ -40,6 +40,7 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
 
   const finalizarDescarga = () => {
     registrarDescarga(app._id);
+    window.open(app.enlaceDescarga, "_blank");
     cerrar();
   };
 
@@ -73,14 +74,12 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
               Generando siguiente paso...
             </div>
           ) : (
-            <a
-              href={`${API_URL}/uploads/${app.archivoApk}`}
-              download
+            <button
               className="boton-descarga vibrar"
               onClick={finalizarDescarga}
             >
               ✅ DESCARGAR {app.nombre} ✅
-            </a>
+            </button>
           )}
         </div>
 
@@ -125,12 +124,10 @@ function TiendaPublica() {
 
   const registrarDescarga = async (id) => {
     try {
-      await fetch(`${API_URL}/api/apks/${id}/descarga`, {
-        method: "PATCH",
-      });
+      await fetch(`${API_URL}/api/apks/${id}/descarga`, { method: "PATCH" });
       obtenerApps();
     } catch (error) {
-      console.error("Error al registrar la descarga:", error);
+      console.error(error);
     }
   };
 
@@ -152,10 +149,9 @@ function TiendaPublica() {
     <div className="contenedor-principal">
       <header className="cabecera-pro">
         <div className="titulos">
-          <h1>XUPERTV</h1>
+          <h1>YonilD-Apks-TV</h1>
           <p>Descarga las mejores APKs de forma segura</p>
         </div>
-
         <div className="buscador-contenedor">
           <input
             type="text"
@@ -186,11 +182,7 @@ function TiendaPublica() {
           appsFiltradas.map((app) => (
             <div key={app._id} className="tarjeta-app">
               <div className="bloque-izquierdo">
-                <img
-                  src={`${API_URL}/uploads/${app.icono}`}
-                  alt="Logo"
-                  className="logo-app"
-                />
+                <img src={app.icono} alt="Logo" className="logo-app" />
                 <div className="info-app">
                   <h3>{app.nombre}</h3>
                   <p className="detalles">
@@ -213,7 +205,6 @@ function TiendaPublica() {
         ) : (
           <div className="sin-resultados">
             <h2>😅 No encontramos esa aplicación</h2>
-            <p>Intenta buscar con otro nombre o revisa otras categorías.</p>
           </div>
         )}
       </main>
@@ -232,20 +223,18 @@ function TiendaPublica() {
 }
 
 // ==========================================
-// 2. EL PANEL SECRETO (AHORA CONECTADO A CLOUDINARY)
+// 2. EL PANEL SECRETO (ADMINISTRADOR)
 // ==========================================
 function PanelAdmin() {
   const [nombre, setNombre] = useState("");
   const [version, setVersion] = useState("");
   const [categoria, setCategoria] = useState("");
   const [peso, setPeso] = useState("");
-  const [archivo, setArchivo] = useState(null);
+  const [enlaceDescarga, setEnlaceDescarga] = useState("");
   const [logo, setLogo] = useState(null);
   const [apps, setApps] = useState([]);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [idEdicion, setIdEdicion] = useState(null);
-
-  // NUEVO: Estado para saber si estamos subiendo archivos a la nube
   const [subiendo, setSubiendo] = useState(false);
 
   const obtenerApps = async () => {
@@ -253,7 +242,7 @@ function PanelAdmin() {
       const respuesta = await fetch(`${API_URL}/api/apks`);
       setApps(await respuesta.json());
     } catch (error) {
-      console.error("Error al cargar inventario:", error);
+      console.error(error);
     }
   };
 
@@ -263,62 +252,49 @@ function PanelAdmin() {
 
   const guardar = async (e) => {
     e.preventDefault();
-
-    // Encendemos el botón de "Subiendo..."
     setSubiendo(true);
 
     const fd = new FormData();
     fd.append("nombre", nombre);
     fd.append("version", version);
     fd.append("categoria", categoria);
-
-    // El peso ahora es opcional porque el backend lo calcula, pero lo mandamos si lo escribes
-    if (peso) fd.append("peso", peso);
-
-    // CAMBIO CLAVE: El backend (Multer) espera que el archivo se llame "apk", no "archivo"
-    if (archivo) fd.append("apk", archivo);
+    fd.append("peso", peso);
+    fd.append("enlaceDescarga", enlaceDescarga);
     if (logo) fd.append("logo", logo);
 
-   const url = modoEdicion
-     ? `http://localhost:10000/api/apks/${idEdicion}`
-     : `http://localhost:10000/api/apks/nueva`;
+    const url = modoEdicion
+      ? `${API_URL}/api/apks/${idEdicion}`
+      : `${API_URL}/api/apks/nueva`;
+    const metodo = modoEdicion ? "PUT" : "POST";
 
     try {
       const res = await fetch(url, {
         method: metodo,
         body: fd,
-        headers: {
-          autorizacion: sessionStorage.getItem("token_vip"),
-        },
+        headers: { autorizacion: sessionStorage.getItem("token_vip") },
       });
 
       const datos = await res.json();
-
       if (res.ok) {
-        alert(
-          modoEdicion
-            ? "✅ ¡Aplicación modificada!"
-            : "✅ ¡App guardada en la nube para siempre!",
-        );
+        alert(modoEdicion ? "✅ ¡Modificada!" : "✅ ¡App guardada!");
         cancelarEdicion();
         obtenerApps();
       } else {
         alert("❌ Error: " + datos.mensaje);
       }
     } catch (error) {
-      console.error("Error al guardar:", error);
       alert("Hubo un error de conexión con el servidor.");
     } finally {
-      // Apagamos el botón de "Subiendo..." sin importar si falló o tuvo éxito
       setSubiendo(false);
     }
   };
 
   const prepararEdicion = (app) => {
-    setNombre(app.nombre || "");
-    setVersion(app.version || "");
-    setCategoria(app.categoria || "");
-    setPeso(app.peso || "");
+    setNombre(app.nombre);
+    setVersion(app.version);
+    setCategoria(app.categoria);
+    setPeso(app.peso);
+    setEnlaceDescarga(app.enlaceDescarga);
     setModoEdicion(true);
     setIdEdicion(app._id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -329,7 +305,7 @@ function PanelAdmin() {
     setVersion("");
     setCategoria("");
     setPeso("");
-    setArchivo(null);
+    setEnlaceDescarga("");
     setLogo(null);
     setModoEdicion(false);
     setIdEdicion(null);
@@ -337,29 +313,16 @@ function PanelAdmin() {
   };
 
   const eliminarApk = async (id) => {
-    if (!window.confirm("¿Seguro que quieres borrar esta app?")) return;
-    try {
-      const res = await fetch(`${API_URL}/api/apks/${id}`, {
-        method: "DELETE",
-        headers: {
-          autorizacion: sessionStorage.getItem("token_vip"),
-        },
-      });
-
-      if (res.ok) {
-        obtenerApps();
-      } else {
-        const datos = await res.json();
-        alert("❌ Error: " + datos.mensaje);
-      }
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-    }
+    if (!window.confirm("¿Borrar app?")) return;
+    await fetch(`${API_URL}/api/apks/${id}`, {
+      method: "DELETE",
+      headers: { autorizacion: sessionStorage.getItem("token_vip") },
+    });
+    obtenerApps();
   };
 
   const cerrarSesion = () => {
-    sessionStorage.removeItem("llave_maestra");
-    sessionStorage.removeItem("token_vip");
+    sessionStorage.clear();
     window.location.href = "/";
   };
 
@@ -373,20 +336,19 @@ function PanelAdmin() {
             alignItems: "center",
           }}
         >
-          <h2>🛠️ Bóveda Xupertv</h2>
+          <h2>🛠️ Bóveda YonilD-APKS</h2>
           <button
             onClick={cerrarSesion}
             style={{
-              background: "var(--danger, #e53e3e)",
+              background: "#e53e3e",
               color: "white",
               border: "none",
               padding: "8px 15px",
               borderRadius: "4px",
               cursor: "pointer",
-              fontWeight: "bold",
             }}
           >
-            🚪 Salir sin dejar rastro
+            🚪 Salir
           </button>
         </div>
 
@@ -420,35 +382,23 @@ function PanelAdmin() {
           <input
             type="text"
             value={peso}
-            placeholder="Peso (Opcional, se calcula solo)"
+            placeholder="Peso (ej: 45 MB)"
             onChange={(e) => setPeso(e.target.value)}
+            required
           />
 
           <label style={{ color: "var(--text-h)" }}>
-            📁 Archivo APK:{" "}
-            {modoEdicion ? (
-              <span style={{ fontSize: "0.8rem" }}>
-                {" "}
-                (Déjalo vacío para conservar actual)
-              </span>
-            ) : null}
+            🔗 Enlace de Descarga:
           </label>
           <input
-            type="file"
-            accept=".apk"
-            onChange={(e) => setArchivo(e.target.files[0])}
-            required={!modoEdicion}
+            type="url"
+            value={enlaceDescarga}
+            placeholder="https://www.mediafire.com..."
+            onChange={(e) => setEnlaceDescarga(e.target.value)}
+            required
           />
 
-          <label style={{ color: "var(--text-h)" }}>
-            🖼️ Icono de la App:{" "}
-            {modoEdicion ? (
-              <span style={{ fontSize: "0.8rem" }}>
-                {" "}
-                (Déjalo vacío para conservar actual)
-              </span>
-            ) : null}
-          </label>
+          <label style={{ color: "var(--text-h)" }}>🖼️ Icono de la App:</label>
           <input
             type="file"
             accept="image/*"
@@ -462,31 +412,27 @@ function PanelAdmin() {
               disabled={subiendo}
               style={{
                 flex: 1,
-                backgroundColor: modoEdicion
-                  ? "var(--success, #48bb78)"
-                  : "var(--accent, #2b6cb0)",
+                backgroundColor: modoEdicion ? "#48bb78" : "#2b6cb0",
                 opacity: subiendo ? 0.7 : 1,
-                cursor: subiendo ? "not-allowed" : "pointer",
               }}
             >
               <span>
                 {subiendo
-                  ? "☁️ Subiendo a la nube... (Espera)"
+                  ? "☁️ Procesando..."
                   : modoEdicion
-                    ? "Actualizar Aplicación"
-                    : "Publicar Aplicación"}
+                    ? "Actualizar"
+                    : "Publicar"}
               </span>
             </button>
-            {modoEdicion ? (
+            {modoEdicion && (
               <button
                 type="button"
                 onClick={cancelarEdicion}
-                disabled={subiendo}
                 style={{ flex: 1, backgroundColor: "#a0aec0" }}
               >
-                <span>Cancelar Edición</span>
+                Cancelar
               </button>
-            ) : null}
+            )}
           </div>
         </form>
 
@@ -494,7 +440,6 @@ function PanelAdmin() {
           style={{
             marginTop: "40px",
             borderBottom: "2px solid var(--border)",
-            paddingBottom: "10px",
             color: "var(--text-h)",
           }}
         >
@@ -509,7 +454,6 @@ function PanelAdmin() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 background: "var(--bg-card)",
-                border: "1px solid var(--border)",
                 padding: "15px",
                 marginBottom: "10px",
                 borderRadius: "8px",
@@ -517,37 +461,32 @@ function PanelAdmin() {
               }}
             >
               <span>
-                <strong>{app.nombre || app.titulo}</strong>{" "}
-                <span style={{ color: "var(--text)" }}>(v{app.version})</span>
+                <strong>{app.nombre}</strong> (v{app.version})
               </span>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button
                   onClick={() => prepararEdicion(app)}
-                  disabled={subiendo}
                   style={{
-                    background: "var(--accent, #3182ce)",
+                    background: "#3182ce",
                     color: "white",
                     border: "none",
                     padding: "8px 12px",
                     borderRadius: "6px",
-                    cursor: "pointer",
                   }}
                 >
-                  ✏️ Modificar
+                  ✏️
                 </button>
                 <button
                   onClick={() => eliminarApk(app._id)}
-                  disabled={subiendo}
                   style={{
-                    background: "var(--danger, #e53e3e)",
+                    background: "#e53e3e",
                     color: "white",
                     border: "none",
                     padding: "8px 12px",
                     borderRadius: "6px",
-                    cursor: "pointer",
                   }}
                 >
-                  🗑️ Eliminar
+                  🗑️
                 </button>
               </div>
             </li>
@@ -559,7 +498,7 @@ function PanelAdmin() {
 }
 
 // ==========================================
-// 3. EL GUARDIÁN FANTASMA (COMPLETO CON ESTILOS)
+// 3. EL GUARDIÁN FANTASMA (ANTI-REINICIOS)
 // ==========================================
 function GuardianFantasma() {
   const [autorizado, setAutorizado] = useState(
@@ -568,8 +507,8 @@ function GuardianFantasma() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const intentarLogin = async (e) => {
-    e.preventDefault();
+  const hacerLogin = async () => {
+    if (!password) return;
     try {
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
@@ -583,11 +522,17 @@ function GuardianFantasma() {
         sessionStorage.setItem("token_vip", datos.token);
         setAutorizado(true);
       } else {
-        setErrorMsg("Acceso denegado");
+        setErrorMsg("❌ Contraseña incorrecta");
         setPassword("");
       }
     } catch (error) {
-      setErrorMsg("Error de conexión al servidor");
+      setErrorMsg("❌ Backend local apagado o desconectado");
+    }
+  };
+
+  const atraparEnter = (e) => {
+    if (e.key === "Enter") {
+      hacerLogin();
     }
   };
 
@@ -603,48 +548,82 @@ function GuardianFantasma() {
         background: "#1a202c",
       }}
     >
-      <form
-        onSubmit={intentarLogin}
-        style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+      {/* 🚩 ADIÓS ETIQUETA FORM. AHORA ES UN SIMPLE DIV */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+          width: "300px",
+          background: "#2d3748",
+          padding: "30px",
+          borderRadius: "10px",
+          boxShadow: "0 4px 6px rgba(0,0,0,0.3)",
+        }}
       >
+        <h2 style={{ color: "white", textAlign: "center", margin: 0 }}>
+          Bóveda Secreta de YonilD-Apks
+        </h2>
         <p
           style={{
-            color: "#718096",
+            color: "#a0aec0",
             textAlign: "center",
-            margin: 0,
-            fontFamily: "monospace",
+            fontSize: "0.9rem",
+            marginTop: 0,
           }}
         >
-          Autenticación requerida
+          Ingresa la llave maestra
         </p>
+
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder=":"
+          onKeyDown={atraparEnter}
+          placeholder="Contraseña..."
           style={{
-            background: "transparent",
-            border: "none",
-            borderBottom: "2px solid #4a5568",
+            background: "#1a202c",
+            border: "1px solid #4a5568",
             color: "white",
             outline: "none",
             textAlign: "center",
-            fontSize: "24px",
-            padding: "10px",
+            fontSize: "18px",
+            padding: "12px",
+            borderRadius: "6px",
           }}
           autoFocus
         />
+
         {errorMsg && (
-          <span
-            style={{ color: "#fc8181", fontSize: "14px", textAlign: "center" }}
+          <p
+            style={{
+              color: "#fc8181",
+              textAlign: "center",
+              margin: 0,
+              fontWeight: "bold",
+            }}
           >
             {errorMsg}
-          </span>
+          </p>
         )}
-        <button type="submit" style={{ display: "none" }}>
-          Entrar
+
+        <button
+          onClick={hacerLogin}
+          style={{
+            background: "#3182ce",
+            color: "white",
+            border: "none",
+            padding: "12px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: "16px",
+            transition: "0.2s",
+          }}
+        >
+          🚪 Entrar
         </button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -21,7 +21,7 @@ mongoose
   .catch((error) => console.error("🔴 Error de conexión:", error));
 
 // ==========================================
-// CONFIGURACIÓN DE CLOUDINARY (LA NUBE)
+// CONFIGURACIÓN DE CLOUDINARY (SOLO PARA LOGOS)
 // ==========================================
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -31,52 +31,33 @@ cloudinary.config({
 
 const almacenamiento = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => {
-    let folderName = "yonild-tv/otros";
-    let resType = "auto";
-
-    if (file.fieldname === "logo") {
-      folderName = "yonild-tv/logos";
-      resType = "image";
-    } else if (file.fieldname === "apk") {
-      folderName = "yonild-tv/apks";
-      resType = "raw"; // Importante para que el APK no se rompa
-    }
-
-    return {
-      folder: folderName,
-      resource_type: resType,
-      public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
-    };
+  params: {
+    folder: "yonild-tv/logos",
+    resource_type: "image", // Solo subiremos imágenes (logos)
+    public_id: (req, file) =>
+      `${Date.now()}-${file.originalname.split(".")[0]}`,
   },
 });
 
 const upload = multer({ storage: almacenamiento });
 
 // ==========================================
-// 1. EL MOLDE PROFESIONAL (GUARDIA DE SEGURIDAD)
+// 1. EL MOLDE PROFESIONAL (ESQUEMA ACTUALIZADO)
 // ==========================================
 const apkSchema = new mongoose.Schema(
   {
-    nombre: {
-      type: String,
-      required: [true, "El nombre es obligatorio"],
-      trim: true,
-    },
-    version: {
-      type: String,
-      required: [true, "La versión es obligatoria"],
-      trim: true,
-    },
-    categoria: { type: String, default: "General", trim: true },
-    peso: { type: String }, // Opcional, lo calcularemos si no viene
-    archivoApk: { type: String }, // Aquí irá el Link de Cloudinary
-    icono: { type: String }, // Aquí irá el Link del Logo
+    nombre: { type: String, required: true },
+    version: { type: String, required: true },
+    categoria: { type: String, default: "General" },
+    peso: { type: String, required: true }, // Se escribe a mano, ej: "25 MB"
+    enlaceDescarga: { type: String, required: true }, // 👈 El link externo (MediaFire, etc.)
+    icono: { type: String }, // URL del logo en Cloudinary
     descargas: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
 
+// IMPORTANTE: Inicializamos el modelo Apk para poder usarlo en las rutas
 const Apk = mongoose.model("Apk", apkSchema);
 
 // ==========================================
@@ -108,30 +89,18 @@ app.get("/", (req, res) => {
   );
 });
 
-// Ruta POST: Subir nueva app a la NUBE (Ruta corregida a /nueva)
+// Ruta POST: Publicar nueva app (Ahora solo sube el LOGO a la nube)
 app.post(
   "/api/apks/nueva",
   verificarToken,
-  upload.fields([
-    { name: "apk", maxCount: 1 }, // Nombres corregidos para coincidir con React
-    { name: "logo", maxCount: 1 },
-  ]),
+  upload.single("logo"), // Solo esperamos un archivo: el logo
   async (req, res) => {
     try {
       const datos = req.body;
 
-      // Extraemos los links directos de Cloudinary
-      if (req.files && req.files["apk"]) {
-        datos.archivoApk = req.files["apk"][0].path; // Guardamos la URL
-        // Si no mandaste peso, calculamos cuánto pesa el APK
-        if (!datos.peso) {
-          datos.peso =
-            (req.files["apk"][0].size / (1024 * 1024)).toFixed(2) + " MB";
-        }
-      }
-
-      if (req.files && req.files["logo"]) {
-        datos.icono = req.files["logo"][0].path; // Guardamos la URL
+      // Si el usuario subió un logo, guardamos la URL de Cloudinary
+      if (req.file) {
+        datos.icono = req.file.path;
       }
 
       const nuevaApp = new Apk(datos);
@@ -139,7 +108,8 @@ app.post(
 
       res.status(201).json({
         exito: true,
-        mensaje: "¡App con logo guardada en Cloudinary correctamente!",
+        mensaje:
+          "¡App publicada con éxito! El logo está en la nube y el link guardado.",
       });
     } catch (error) {
       res.status(400).json({
@@ -154,7 +124,7 @@ app.post(
 // Ruta GET: Pedir la lista de apps
 app.get("/api/apks", async (req, res) => {
   try {
-    const lista = await Apk.find();
+    const lista = await Apk.find().sort({ createdAt: -1 });
     res.json(lista);
   } catch (error) {
     res.status(500).json([]);
@@ -165,20 +135,13 @@ app.get("/api/apks", async (req, res) => {
 app.put(
   "/api/apks/:id",
   verificarToken,
-  upload.fields([
-    { name: "apk", maxCount: 1 },
-    { name: "logo", maxCount: 1 },
-  ]),
+  upload.single("logo"),
   async (req, res) => {
     try {
       const datosActualizados = req.body;
 
-      if (req.files && req.files["apk"]) {
-        datosActualizados.archivoApk = req.files["apk"][0].path;
-      }
-
-      if (req.files && req.files["logo"]) {
-        datosActualizados.icono = req.files["logo"][0].path;
+      if (req.file) {
+        datosActualizados.icono = req.file.path;
       }
 
       await Apk.findByIdAndUpdate(req.params.id, datosActualizados);
@@ -189,7 +152,7 @@ app.put(
   },
 );
 
-// Ruta DELETE y PATCH quedan igual
+// Ruta DELETE
 app.delete("/api/apks/:id", verificarToken, async (req, res) => {
   try {
     await Apk.findByIdAndDelete(req.params.id);
@@ -199,6 +162,7 @@ app.delete("/api/apks/:id", verificarToken, async (req, res) => {
   }
 });
 
+// Ruta PATCH: Sumar descarga
 app.patch("/api/apks/:id/descarga", async (req, res) => {
   try {
     const appActualizada = await Apk.findByIdAndUpdate(
@@ -208,7 +172,7 @@ app.patch("/api/apks/:id/descarga", async (req, res) => {
     );
     res.json({ exito: true, descargasTotales: appActualizada.descargas });
   } catch (error) {
-    res.status(400).json({ exito: false, mensaje: "Error al contar" });
+    res.status(400).json({ exito: false, mensaje: "Error al contar descarga" });
   }
 });
 
@@ -226,6 +190,18 @@ app.post("/api/login", (req, res) => {
   } else {
     res.status(401).json({ exito: false, mensaje: "Intruso detectado" });
   }
+});
+
+// ==========================================
+// 🚨 ATRAPADOR DE ERRORES GLOBAL
+// ==========================================
+app.use((err, req, res, next) => {
+  console.error("🚨 ERROR FATAL REVELADO:", err);
+  res.status(500).json({
+    exito: false,
+    mensaje: "Error interno del servidor",
+    detalle: err.message || "Error desconocido",
+  });
 });
 
 app.listen(puerto, () => {
