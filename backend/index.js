@@ -3,20 +3,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
-
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const jwt = require("jsonwebtoken");
-const CLAVE_JWT = process.env.CLAVE_JWT || "xuper_firma_secreta_2026";
 
+const CLAVE_JWT = process.env.CLAVE_JWT || "xuper_firma_secreta_2026";
 const app = express();
 app.use(express.json());
-
 app.use(cors());
-
-// Definimos el GPS exacto para la carpeta
-const rutaUploads = path.join(__dirname, "uploads");
-app.use("/uploads", express.static(rutaUploads));
 
 const puerto = process.env.PORT || 10000;
 const uri = process.env.MONGO_URI;
@@ -27,19 +21,33 @@ mongoose
   .catch((error) => console.error("🔴 Error de conexión:", error));
 
 // ==========================================
-// CONFIGURACIÓN DE SUBIDA (JUSTO A TIEMPO)
+// CONFIGURACIÓN DE CLOUDINARY (LA NUBE)
 // ==========================================
-const almacenamiento = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // 👇 EL TRUCO HACKER: Verificamos y creamos la carpeta en el instante exacto que llega el archivo
-    if (!fs.existsSync(rutaUploads)) {
-      fs.mkdirSync(rutaUploads, { recursive: true });
-      console.log("📁 Carpeta 'uploads' creada JUSTO A TIEMPO.");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const almacenamiento = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    let folderName = "yonild-tv/otros";
+    let resType = "auto";
+
+    if (file.fieldname === "logo") {
+      folderName = "yonild-tv/logos";
+      resType = "image";
+    } else if (file.fieldname === "apk") {
+      folderName = "yonild-tv/apks";
+      resType = "raw"; // Importante para que el APK no se rompa
     }
-    cb(null, rutaUploads);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+
+    return {
+      folder: folderName,
+      resource_type: resType,
+      public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
+    };
   },
 });
 
@@ -60,32 +68,19 @@ const apkSchema = new mongoose.Schema(
       required: [true, "La versión es obligatoria"],
       trim: true,
     },
-    categoria: {
-      type: String,
-      default: "General",
-      trim: true,
-    },
-    peso: {
-      type: String,
-      required: [true, "El peso es obligatorio"],
-    },
-    archivoApk: {
-      type: String,
-    },
-    icono: {
-      type: String,
-    },
+    categoria: { type: String, default: "General", trim: true },
+    peso: { type: String }, // Opcional, lo calcularemos si no viene
+    archivoApk: { type: String }, // Aquí irá el Link de Cloudinary
+    icono: { type: String }, // Aquí irá el Link del Logo
     descargas: { type: Number, default: 0 },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 const Apk = mongoose.model("Apk", apkSchema);
 
 // ==========================================
-// 👇 2. EL CADENERO DE SEGURIDAD (Middleware) 👇
+// 2. EL CADENERO DE SEGURIDAD (Middleware)
 // ==========================================
 const verificarToken = (req, res, next) => {
   const token = req.headers["autorizacion"];
@@ -113,31 +108,38 @@ app.get("/", (req, res) => {
   );
 });
 
-// Ruta POST: Subir nueva app
+// Ruta POST: Subir nueva app a la NUBE (Ruta corregida a /nueva)
 app.post(
-  "/api/apks",
+  "/api/apks/nueva",
   verificarToken,
   upload.fields([
-    { name: "archivo", maxCount: 1 },
+    { name: "apk", maxCount: 1 }, // Nombres corregidos para coincidir con React
     { name: "logo", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
       const datos = req.body;
 
-      if (req.files["archivo"]) {
-        datos.archivoApk = req.files["archivo"][0].filename;
+      // Extraemos los links directos de Cloudinary
+      if (req.files && req.files["apk"]) {
+        datos.archivoApk = req.files["apk"][0].path; // Guardamos la URL
+        // Si no mandaste peso, calculamos cuánto pesa el APK
+        if (!datos.peso) {
+          datos.peso =
+            (req.files["apk"][0].size / (1024 * 1024)).toFixed(2) + " MB";
+        }
       }
 
-      if (req.files["logo"]) {
-        datos.icono = req.files["logo"][0].filename;
+      if (req.files && req.files["logo"]) {
+        datos.icono = req.files["logo"][0].path; // Guardamos la URL
       }
 
       const nuevaApp = new Apk(datos);
       await nuevaApp.save();
+
       res.status(201).json({
         exito: true,
-        mensaje: "¡App con logo guardada correctamente en la nube!",
+        mensaje: "¡App con logo guardada en Cloudinary correctamente!",
       });
     } catch (error) {
       res.status(400).json({
@@ -164,32 +166,30 @@ app.put(
   "/api/apks/:id",
   verificarToken,
   upload.fields([
-    { name: "archivo", maxCount: 1 },
+    { name: "apk", maxCount: 1 },
     { name: "logo", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
       const datosActualizados = req.body;
 
-      if (req.files && req.files["archivo"]) {
-        datosActualizados.archivoApk = req.files["archivo"][0].filename;
+      if (req.files && req.files["apk"]) {
+        datosActualizados.archivoApk = req.files["apk"][0].path;
       }
 
       if (req.files && req.files["logo"]) {
-        datosActualizados.icono = req.files["logo"][0].filename;
+        datosActualizados.icono = req.files["logo"][0].path;
       }
 
       await Apk.findByIdAndUpdate(req.params.id, datosActualizados);
       res.json({ exito: true, mensaje: "¡Aplicación actualizada con éxito!" });
     } catch (error) {
-      res
-        .status(400)
-        .json({ exito: false, mensaje: "Error al actualizar la aplicación" });
+      res.status(400).json({ exito: false, mensaje: "Error al actualizar" });
     }
   },
 );
 
-// Ruta DELETE: Borrar una app
+// Ruta DELETE y PATCH quedan igual
 app.delete("/api/apks/:id", verificarToken, async (req, res) => {
   try {
     await Apk.findByIdAndDelete(req.params.id);
@@ -199,7 +199,6 @@ app.delete("/api/apks/:id", verificarToken, async (req, res) => {
   }
 });
 
-// Ruta PATCH: Sumar una descarga
 app.patch("/api/apks/:id/descarga", async (req, res) => {
   try {
     const appActualizada = await Apk.findByIdAndUpdate(
@@ -217,7 +216,6 @@ app.patch("/api/apks/:id/descarga", async (req, res) => {
 // 4. RUTA DE SEGURIDAD (Login)
 // ==========================================
 app.post("/api/login", (req, res) => {
-  // Ahora el servidor busca la contraseña en el archivo .env
   const contrasenaSecreta = process.env.PASS_ADMIN;
 
   if (req.body.password === contrasenaSecreta) {
@@ -226,7 +224,6 @@ app.post("/api/login", (req, res) => {
     });
     res.json({ exito: true, mensaje: "Bienvenido jefe", token: token });
   } else {
-    // Si la contraseña no coincide o la variable no está configurada, lo rechaza
     res.status(401).json({ exito: false, mensaje: "Intruso detectado" });
   }
 });

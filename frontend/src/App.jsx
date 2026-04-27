@@ -279,10 +279,9 @@ function PanelAdmin() {
     if (archivo) fd.append("apk", archivo);
     if (logo) fd.append("logo", logo);
 
-    const url = modoEdicion
-      ? `${API_URL}/api/apks/${idEdicion}`
-      : `${API_URL}/api/apks/nueva`; // Ajustado a la ruta nueva que creamos en el backend
-    const metodo = modoEdicion ? "PUT" : "POST";
+   const url = modoEdicion
+     ? `http://localhost:10000/api/apks/${idEdicion}`
+     : `http://localhost:10000/api/apks/nueva`;
 
     try {
       const res = await fetch(url, {
