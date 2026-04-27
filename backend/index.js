@@ -217,7 +217,8 @@ app.patch("/api/apks/:id/descarga", async (req, res) => {
 // 4. RUTA DE SEGURIDAD (Login)
 // ==========================================
 app.post("/api/login", (req, res) => {
-  const contrasenaSecreta = "xuper2026";
+  // Ahora el servidor busca la contraseña en el archivo .env
+  const contrasenaSecreta = process.env.PASS_ADMIN;
 
   if (req.body.password === contrasenaSecreta) {
     const token = jwt.sign({ rol: "administrador" }, CLAVE_JWT, {
@@ -225,6 +226,7 @@ app.post("/api/login", (req, res) => {
     });
     res.json({ exito: true, mensaje: "Bienvenido jefe", token: token });
   } else {
+    // Si la contraseña no coincide o la variable no está configurada, lo rechaza
     res.status(401).json({ exito: false, mensaje: "Intruso detectado" });
   }
 });

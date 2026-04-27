@@ -232,7 +232,7 @@ function TiendaPublica() {
 }
 
 // ==========================================
-// 2. EL PANEL SECRETO (INTACTO CON JWT Y FORMULARIOS)
+// 2. EL PANEL SECRETO (AHORA CONECTADO A CLOUDINARY)
 // ==========================================
 function PanelAdmin() {
   const [nombre, setNombre] = useState("");
@@ -244,6 +244,9 @@ function PanelAdmin() {
   const [apps, setApps] = useState([]);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [idEdicion, setIdEdicion] = useState(null);
+
+  // NUEVO: Estado para saber si estamos subiendo archivos a la nube
+  const [subiendo, setSubiendo] = useState(false);
 
   const obtenerApps = async () => {
     try {
@@ -260,17 +263,25 @@ function PanelAdmin() {
 
   const guardar = async (e) => {
     e.preventDefault();
+
+    // Encendemos el botón de "Subiendo..."
+    setSubiendo(true);
+
     const fd = new FormData();
     fd.append("nombre", nombre);
     fd.append("version", version);
     fd.append("categoria", categoria);
-    fd.append("peso", peso);
-    if (archivo) fd.append("archivo", archivo);
+
+    // El peso ahora es opcional porque el backend lo calcula, pero lo mandamos si lo escribes
+    if (peso) fd.append("peso", peso);
+
+    // CAMBIO CLAVE: El backend (Multer) espera que el archivo se llame "apk", no "archivo"
+    if (archivo) fd.append("apk", archivo);
     if (logo) fd.append("logo", logo);
 
     const url = modoEdicion
       ? `${API_URL}/api/apks/${idEdicion}`
-      : `${API_URL}/api/apks`;
+      : `${API_URL}/api/apks/nueva`; // Ajustado a la ruta nueva que creamos en el backend
     const metodo = modoEdicion ? "PUT" : "POST";
 
     try {
@@ -285,7 +296,11 @@ function PanelAdmin() {
       const datos = await res.json();
 
       if (res.ok) {
-        alert(modoEdicion ? "✅ ¡Aplicación modificada!" : "✅ ¡App guardada!");
+        alert(
+          modoEdicion
+            ? "✅ ¡Aplicación modificada!"
+            : "✅ ¡App guardada en la nube para siempre!",
+        );
         cancelarEdicion();
         obtenerApps();
       } else {
@@ -293,6 +308,10 @@ function PanelAdmin() {
       }
     } catch (error) {
       console.error("Error al guardar:", error);
+      alert("Hubo un error de conexión con el servidor.");
+    } finally {
+      // Apagamos el botón de "Subiendo..." sin importar si falló o tuvo éxito
+      setSubiendo(false);
     }
   };
 
@@ -359,7 +378,7 @@ function PanelAdmin() {
           <button
             onClick={cerrarSesion}
             style={{
-              background: "#e53e3e",
+              background: "var(--danger, #e53e3e)",
               color: "white",
               border: "none",
               padding: "8px 15px",
@@ -372,7 +391,12 @@ function PanelAdmin() {
           </button>
         </div>
 
-        <form id="form-admin" onSubmit={guardar} className="formulario">
+        <form
+          id="form-admin"
+          onSubmit={guardar}
+          className="formulario"
+          encType="multipart/form-data"
+        >
           <input
             type="text"
             value={nombre}
@@ -397,27 +421,33 @@ function PanelAdmin() {
           <input
             type="text"
             value={peso}
-            placeholder="Peso"
+            placeholder="Peso (Opcional, se calcula solo)"
             onChange={(e) => setPeso(e.target.value)}
-            required
           />
 
-          <label>
+          <label style={{ color: "var(--text-h)" }}>
             📁 Archivo APK:{" "}
             {modoEdicion ? (
-              <span> (Déjalo vacío para conservar actual)</span>
+              <span style={{ fontSize: "0.8rem" }}>
+                {" "}
+                (Déjalo vacío para conservar actual)
+              </span>
             ) : null}
           </label>
           <input
             type="file"
+            accept=".apk"
             onChange={(e) => setArchivo(e.target.files[0])}
             required={!modoEdicion}
           />
 
-          <label>
+          <label style={{ color: "var(--text-h)" }}>
             🖼️ Icono de la App:{" "}
             {modoEdicion ? (
-              <span> (Déjalo vacío para conservar actual)</span>
+              <span style={{ fontSize: "0.8rem" }}>
+                {" "}
+                (Déjalo vacío para conservar actual)
+              </span>
             ) : null}
           </label>
           <input
@@ -427,22 +457,32 @@ function PanelAdmin() {
             required={!modoEdicion}
           />
 
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
             <button
               type="submit"
+              disabled={subiendo}
               style={{
                 flex: 1,
-                backgroundColor: modoEdicion ? "#48bb78" : "#2b6cb0",
+                backgroundColor: modoEdicion
+                  ? "var(--success, #48bb78)"
+                  : "var(--accent, #2b6cb0)",
+                opacity: subiendo ? 0.7 : 1,
+                cursor: subiendo ? "not-allowed" : "pointer",
               }}
             >
               <span>
-                {modoEdicion ? "Actualizar Aplicación" : "Publicar Aplicación"}
+                {subiendo
+                  ? "☁️ Subiendo a la nube... (Espera)"
+                  : modoEdicion
+                    ? "Actualizar Aplicación"
+                    : "Publicar Aplicación"}
               </span>
             </button>
             {modoEdicion ? (
               <button
                 type="button"
                 onClick={cancelarEdicion}
+                disabled={subiendo}
                 style={{ flex: 1, backgroundColor: "#a0aec0" }}
               >
                 <span>Cancelar Edición</span>
@@ -450,7 +490,15 @@ function PanelAdmin() {
             ) : null}
           </div>
         </form>
-        <h3 style={{ marginTop: "30px", borderBottom: "2px solid #cbd5e0" }}>
+
+        <h3
+          style={{
+            marginTop: "40px",
+            borderBottom: "2px solid var(--border)",
+            paddingBottom: "10px",
+            color: "var(--text-h)",
+          }}
+        >
           Inventario Actual
         </h3>
         <ul style={{ listStyle: "none", padding: 0 }}>
@@ -461,25 +509,28 @@ function PanelAdmin() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                background: "white",
-                padding: "10px",
-                marginBottom: "5px",
-                borderRadius: "4px",
-                color: "black",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border)",
+                padding: "15px",
+                marginBottom: "10px",
+                borderRadius: "8px",
+                color: "var(--text-h)",
               }}
             >
               <span>
-                <strong>{app.nombre}</strong> (v{app.version})
+                <strong>{app.nombre || app.titulo}</strong>{" "}
+                <span style={{ color: "var(--text)" }}>(v{app.version})</span>
               </span>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button
                   onClick={() => prepararEdicion(app)}
+                  disabled={subiendo}
                   style={{
-                    background: "#3182ce",
+                    background: "var(--accent, #3182ce)",
                     color: "white",
                     border: "none",
-                    padding: "5px 10px",
-                    borderRadius: "4px",
+                    padding: "8px 12px",
+                    borderRadius: "6px",
                     cursor: "pointer",
                   }}
                 >
@@ -487,12 +538,13 @@ function PanelAdmin() {
                 </button>
                 <button
                   onClick={() => eliminarApk(app._id)}
+                  disabled={subiendo}
                   style={{
-                    background: "#e53e3e",
+                    background: "var(--danger, #e53e3e)",
                     color: "white",
                     border: "none",
-                    padding: "5px 10px",
-                    borderRadius: "4px",
+                    padding: "8px 12px",
+                    borderRadius: "6px",
                     cursor: "pointer",
                   }}
                 >

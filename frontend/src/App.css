@@ -1,64 +1,87 @@
-/* Reseteo general */
-body {
-  margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
-  background-color: #f4f5f7;
-  color: #333;
-}
-
+/* =========================================
+   ESTRUCTURA PRINCIPAL
+   ========================================= */
 .contenedor-principal {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Cabecera principal */
+/* Cabecera principal Premium */
 .cabecera {
-  background-color: #1a202c;
-  color: white;
+  background: linear-gradient(135deg, var(--bg-card) 0%, #111318 100%);
+  color: var(--text-h);
   padding: 30px 20px;
-  border-radius: 8px;
+  border-radius: 16px;
   text-align: center;
   margin-bottom: 30px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }
 
 .cabecera h1 {
   margin: 0;
-  font-size: 2rem;
-  letter-spacing: 2px;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+  background: linear-gradient(to right, #ffffff, #9ca3af);
+  -webkit-background-clip: text;
+  background-clip: text; /* <- Esta es la línea que pide VS Code */
+  -webkit-text-fill-color: transparent;
 }
-
-/* Diseño de la lista estilo APKMirror */
+/* =========================================
+   DISEÑO DE LAS TARJETAS (ESTILO APP STORE)
+   ========================================= */
 .titulo-seccion {
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border);
   padding-bottom: 10px;
-  color: #2d3748;
+  color: var(--text-h);
 }
 
 .tarjeta-app {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
+  background-color: var(--bg-card);
   padding: 15px 20px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #48bb78;
+  margin-bottom: 15px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--success);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tarjeta-app:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: #3f4451;
+}
+
+.bloque-izquierdo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-app {
+  width: 55px;
+  height: 55px;
+  border-radius: 14px;
+  object-fit: cover;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
 }
 
 .info-app h3 {
   margin: 0 0 5px 0;
-  color: #2b6cb0;
-  font-size: 1.1rem;
+  color: var(--text-h);
+  font-size: 1.15rem;
 }
 
 .detalles {
   margin: 0;
   font-size: 0.85rem;
-  color: #718096;
+  color: var(--text);
 }
 
 .accion-app {
@@ -69,85 +92,94 @@ body {
 
 .peso {
   font-size: 0.85rem;
-  color: #a0aec0;
-  font-weight: bold;
+  color: var(--text);
+  font-weight: 600;
+  background-color: var(--bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
 }
 
 .boton-descarga {
-  background-color: #48bb78;
+  background-color: var(--success);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.1s;
 }
 
 .boton-descarga:hover {
-  background-color: #38a169;
+  background-color: var(--success-hover);
+  transform: scale(1.05);
 }
 
-/* Estilos básicos para tu panel de administrador */
+/* =========================================
+   PANEL DE ADMINISTRADOR DARK MODE
+   ========================================= */
 .separador {
   margin: 50px 0;
   border: none;
-  border-top: 2px dashed #cbd5e0;
+  border-top: 2px dashed var(--border);
 }
 
 .panel-admin {
-  background-color: #edf2f7;
-  padding: 20px;
-  border-radius: 8px;
+  background-color: var(--bg-card);
+  padding: 25px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }
 
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.formulario input {
-  padding: 10px;
-  border: 1px solid #cbd5e0;
-  border-radius: 4px;
-}
-
-.formulario button {
-  background-color: #2b6cb0;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.bloque-izquierdo {
-  display: flex;
-  align-items: center;
   gap: 15px;
 }
 
-.logo-app {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px; /* Bordes redondeados profesionales */
-  object-fit: cover;
-  background-color: #eee;
-  border: 1px solid #ddd;
+.formulario input {
+  padding: 12px;
+  background-color: var(--bg);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.formulario input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+.formulario button {
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 1rem;
+}
+
+.formulario button:hover {
+  background-color: var(--accent-hover);
 }
 
 /* =========================================
-   DISEÑO PROFESIONAL DEL BUSCADOR Y FILTROS
+   BUSCADOR Y FILTROS
    ========================================= */
-
 .cabecera-pro {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .buscador-contenedor {
@@ -157,18 +189,19 @@ body {
 
 .barra-busqueda {
   width: 100%;
-  padding: 12px 20px;
+  padding: 14px 24px;
   border-radius: 30px;
-  border: 2px solid #e2e8f0;
+  background-color: var(--bg-card);
+  color: var(--text-h);
+  border: 2px solid var(--border);
   font-size: 16px;
   outline: none;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .barra-busqueda:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
 }
 
 .filtros-categoria {
@@ -180,50 +213,50 @@ body {
 }
 
 .btn-filtro {
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: 20px;
-  border: 1px solid #cbd5e0;
-  background-color: white;
-  color: #4a5568;
+  border: 1px solid var(--border);
+  background-color: var(--bg-card);
+  color: var(--text);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-filtro:hover {
-  background-color: #edf2f7;
+  background-color: var(--border);
+  color: var(--text-h);
 }
 
 .btn-filtro.activo {
-  background-color: #3182ce;
+  background-color: var(--accent);
   color: white;
-  border-color: #3182ce;
-  box-shadow: 0 2px 4px rgba(49, 130, 206, 0.4);
+  border-color: var(--accent);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .sin-resultados {
   text-align: center;
   padding: 40px;
-  color: #718096;
-  background-color: #f7fafc;
-  border-radius: 12px;
-  border: 1px dashed #cbd5e0;
+  color: var(--text);
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  border: 2px dashed var(--border);
   grid-column: 1 / -1;
 }
 
 /* =========================================
-   DISEÑO DE BLOQUES PUBLICITARIOS
+   BLOQUES PUBLICITARIOS
    ========================================= */
-
 .bloque-anuncio {
-  background-color: #f7fafc;
-  border: 1px dashed #cbd5e0;
+  background-color: var(--bg-card);
+  border: 2px dashed var(--border);
   margin: 20px auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-radius: 8px;
+  border-radius: 12px;
   position: relative;
   overflow: hidden;
 }
@@ -232,33 +265,20 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  background: #cbd5e0;
-  color: white;
+  background: var(--border);
+  color: var(--text-h);
   font-size: 10px;
-  padding: 2px 6px;
-  border-bottom-right-radius: 4px;
-}
-
-.banner-horizontal {
-  width: 100%;
-  max-width: 728px;
-  height: 90px;
-}
-
-.cuadrado-footer {
-  width: 100%;
-  max-width: 300px;
-  height: 250px;
-}
-
-.texto-anuncio {
-  color: #a0aec0;
-  font-size: 14px;
+  padding: 3px 8px;
+  border-bottom-right-radius: 8px;
   font-weight: bold;
 }
 
+.banner-horizontal { width: 100%; max-width: 728px; height: 90px; }
+.cuadrado-footer { width: 100%; max-width: 300px; height: 250px; }
+.texto-anuncio { color: var(--text); font-size: 14px; font-weight: bold; }
+
 /* =========================================
-   PANTALLA DE ESPERA DE DESCARGA (MODAL)
+   MODAL DE ESPERA (DESCARGA)
    ========================================= */
 .overlay-oscuro {
   position: fixed;
@@ -266,96 +286,88 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.85); /* Fondo negro semitransparente */
+  background-color: rgba(0, 0, 0, 0.85); 
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Siempre arriba de todo */
-  backdrop-filter: blur(5px);
+  z-index: 1000;
+  backdrop-filter: blur(8px);
 }
 
 .ventana-espera {
-  background-color: #ffffff;
+  background-color: var(--bg-card);
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
-  overflow-y: auto; /* Si hay muchos anuncios, se puede bajar (scroll) */
-  border-radius: 12px;
-  padding: 20px;
+  overflow-y: auto;
+  border-radius: 20px;
+  padding: 30px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  color: #2d3748;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--border);
 }
 
 .ventana-espera h2 {
-  color: #2b6cb0;
-  margin-bottom: 5px;
+  color: var(--text-h);
+  margin-bottom: 10px;
+  font-size: 1.8rem;
 }
 
 .zona-contador {
-  margin: 20px 0;
-  padding: 20px;
-  background-color: #ebf8ff;
-  border-radius: 8px;
-  border: 2px solid #bee3f8;
+  margin: 25px 0;
+  padding: 30px;
+  background-color: var(--bg);
+  border-radius: 16px;
+  border: 2px solid var(--border);
 }
 
 .numero-gigante {
-  font-size: 60px;
+  font-size: 70px;
   font-weight: 900;
-  color: #e53e3e;
-  animation: latir 1s infinite; /* Animación de reloj */
+  color: var(--accent);
+  animation: latir 1s infinite;
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .boton-cancelar {
-  margin-top: 15px;
+  margin-top: 20px;
   background: transparent;
   border: none;
-  color: #a0aec0;
+  color: var(--text);
   cursor: pointer;
   font-weight: bold;
+  font-size: 1rem;
+  transition: color 0.2s;
 }
 
 .boton-cancelar:hover {
-  color: #e53e3e;
+  color: var(--danger);
   text-decoration: underline;
 }
 
 .vibrar {
   display: inline-block;
-  background-color: #48bb78;
+  background-color: var(--success);
+  color: white;
   font-size: 18px;
-  padding: 15px 30px;
+  font-weight: bold;
+  padding: 15px 35px;
+  border-radius: 10px;
   animation: vibrar 2s infinite;
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
 }
 
 /* Animaciones */
 @keyframes latir {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 @keyframes vibrar {
-  0% {
-    transform: rotate(0deg);
-  }
-  10% {
-    transform: rotate(-2deg);
-  }
-  20% {
-    transform: rotate(2deg);
-  }
-  30% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(-3deg); }
+  20% { transform: rotate(3deg); }
+  30% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
 }
