@@ -371,3 +371,69 @@
   30% { transform: rotate(0deg); }
   100% { transform: rotate(0deg); }
 }
+
+/* ==========================================
+   📱 MODO MÓVIL (YONILD-APKS-TV)
+   ========================================== */
+@media (max-width: 768px) {
+  /* La cabecera y el título se ajustan para pantallas pequeñas */
+  .cabecera-pro {
+    padding: 20px 10px;
+  }
+  
+  .titulos h1 {
+    font-size: 1.8rem !important;
+  }
+
+  .buscador-contenedor {
+    width: 100%;
+  }
+
+  /* La barra de búsqueda ocupa todo el ancho */
+  .barra-busqueda {
+    width: 100%;
+    font-size: 16px; /* Evita que el iPhone haga zoom automático al escribir */
+  }
+
+  /* Las categorías se vuelven deslizables (scroll horizontal) */
+  .filtros-categoria {
+    overflow-x: auto;
+    padding-bottom: 10px;
+    justify-content: flex-start;
+    white-space: nowrap;
+  }
+
+  /* Las tarjetas de las aplicaciones se apilan hacia abajo */
+  .tarjeta-app {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .bloque-izquierdo {
+    flex-direction: column;
+    margin-bottom: 15px;
+  }
+
+  .logo-app {
+    margin-right: 0;
+    margin-bottom: 10px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .accion-app {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* El botón de descarga es más grande y fácil de tocar */
+  .boton-descarga {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+  }
+}
