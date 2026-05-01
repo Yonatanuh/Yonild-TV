@@ -103,37 +103,20 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
 // ==========================================
 // 1. LA TIENDA PÚBLICA
 // ==========================================
-function TiendaPublica() {
-  const [apps, setApps] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
-  const [categoriaActiva, setCategoriaActiva] = useState("Todas");
-  const [appEnDescarga, setAppEnDescarga] = useState(null);
-
-  const obtenerApps = async () => {
-    try {
-      const respuesta = await fetch(`${API_URL}/api/apks`);
-      setApps(await respuesta.json());
-    } catch (error) {
-      console.error("Error al cargar tienda:", error);
-    }
-  };
-
-  useEffect(() => {
-    obtenerApps();
-  }, []);
-
-  const registrarDescarga = async (id) => {
-    try {
-      await fetch(`${API_URL}/api/apks/${id}/descarga`, { method: "PATCH" });
-      obtenerApps();
-    } catch (error) {
-      console.error(error);
-    }
+// ==========================================
+  // 🧹 FILTRO INTELIGENTE ANTI-DUPLICADOS
+  // ==========================================
+  const normalizarCategoria = (texto) => {
+    if (!texto) return "Otros";
+    // Le quita los espacios fantasma y pone todo en minúscula
+    const limpio = texto.trim().toLowerCase();
+    // Vuelve a poner solo la primera letra en mayúscula para que se vea elegante
+    return limpio.charAt(0).toUpperCase() + limpio.slice(1);
   };
 
   const categoriasUnicas = [
     "Todas",
-    ...new Set(apps.map((app) => app.categoria)),
+    ...new Set(apps.map((app) => normalizarCategoria(app.categoria))),
   ];
 
   const appsFiltradas = apps.filter((app) => {
@@ -141,86 +124,11 @@ function TiendaPublica() {
       .toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideCategoria =
-      categoriaActiva === "Todas" || app.categoria === categoriaActiva;
+      categoriaActiva === "Todas" ||
+      normalizarCategoria(app.categoria) === categoriaActiva;
     return coincideTexto && coincideCategoria;
   });
-
-  return (
-    <div className="contenedor-principal">
-      <header className="cabecera-pro">
-        <div className="titulos">
-          <h1>YonilD-Apks-TV</h1>
-          <p>Descarga las mejores APKs de forma segura</p>
-        </div>
-        <div className="buscador-contenedor">
-          <input
-            type="text"
-            placeholder="🔍 Buscar aplicación..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="barra-busqueda"
-          />
-        </div>
-      </header>
-
-      <BloqueAnuncio formato="banner-horizontal" etiqueta="TIENDA TOP" />
-
-      <nav className="filtros-categoria">
-        {categoriasUnicas.map((cat) => (
-          <button
-            key={cat}
-            className={`btn-filtro ${categoriaActiva === cat ? "activo" : ""}`}
-            onClick={() => setCategoriaActiva(cat)}
-          >
-            {cat}
-          </button>
-        ))}
-      </nav>
-
-      <main className="lista-apps">
-        {appsFiltradas.length > 0 ? (
-          appsFiltradas.map((app) => (
-            <div key={app._id} className="tarjeta-app">
-              <div className="bloque-izquierdo">
-                <img src={app.icono} alt="Logo" className="logo-app" />
-                <div className="info-app">
-                  <h3>{app.nombre}</h3>
-                  <p className="detalles">
-                    v{app.version} • {app.categoria} • 📥 {app.descargas || 0}{" "}
-                    descargas
-                  </p>
-                </div>
-              </div>
-              <div className="accion-app">
-                <span className="peso">{app.peso}</span>
-                <button
-                  className="boton-descarga"
-                  onClick={() => setAppEnDescarga(app)}
-                >
-                  ⬇ Descargar
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="sin-resultados">
-            <h2>😅 No encontramos esa aplicación</h2>
-          </div>
-        )}
-      </main>
-
-      <BloqueAnuncio formato="cuadrado-footer" etiqueta="TIENDA BOTTOM" />
-
-      {appEnDescarga && (
-        <PantallaEspera
-          app={appEnDescarga}
-          cerrar={() => setAppEnDescarga(null)}
-          registrarDescarga={registrarDescarga}
-        />
-      )}
-    </div>
-  );
-}
+  // ==========================================
 
 // ==========================================
 // 2. EL PANEL SECRETO (ADMINISTRADOR)
