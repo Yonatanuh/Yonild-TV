@@ -437,3 +437,29 @@
     font-size: 1.1rem;
   }
 }
+
+/* ==========================================
+   🔧 ARREGLO CATEGORÍAS EN UNA FILA (ANTI-DUPLICADO)
+   ========================================== */
+.filtros-categoria {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto; /* IMPORTANTE: Permite el scroll horizontal */
+  white-space: nowrap; /* IMPORTANTE: Evita que las categorías bajen a otra línea */
+  padding: 15px 10px; /* Dale un poco de "aire" */
+  width: 100%;
+  max-width: 1000px; /* Ajusta esto según el ancho máximo de tu tienda */
+  margin: 0 auto; /* Centrar la sección */
+  scrollbar-width: thin; /* Opcional: para que la barra de scroll sea finita en Firefox/Safari */
+  scrollbar-color: var(--accent) transparent; /* Color del scroll */
+}
+
+/* Para navegadores Chrome/Edge, esto oculta la barra de scroll para un diseño más limpio, pero permite desplazar */
+.filtros-categoria::-webkit-scrollbar {
+  height: 5px; /* Altura de la barra horizontal */
+}
+
+.filtros-categoria::-webkit-scrollbar-thumb {
+  background: var(--accent); /* Color de la barra */
+  border-radius: 10px;
+}
