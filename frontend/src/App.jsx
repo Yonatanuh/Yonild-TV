@@ -122,6 +122,15 @@ function TiendaPublica() {
     obtenerApps();
   }, []);
 
+  // Inyección de Adsterra optimizada para React
+  useEffect(() => {
+    const scriptAdsterra = document.createElement("script");
+    scriptAdsterra.src =
+      "https://pl29319410.profitablecpmratenetwork.com/19/a5/b9/19a5b9384abd896b5c6513eeab1c2683.js";
+    scriptAdsterra.async = true;
+    document.body.appendChild(scriptAdsterra);
+  }, []);
+
   const registrarDescarga = async (id) => {
     try {
       await fetch(`${API_URL}/api/apks/${id}/descarga`, { method: "PATCH" });
