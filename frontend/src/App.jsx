@@ -6,7 +6,7 @@ import "./App.css";
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
 // ==========================================
-// COMPONENTE DE MONETIZACIÓN (BLINDADO CON IFRAME)
+// COMPONENTE DE MONETIZACIÓN (MODO SEGURO)
 // ==========================================
 function BloqueAnuncio({ formato, etiqueta }) {
   let ancho = 320;
@@ -14,7 +14,6 @@ function BloqueAnuncio({ formato, etiqueta }) {
   let htmlAnuncio = "";
 
   if (formato === "banner-horizontal") {
-    // Código de 320x50 de Adsterra
     htmlAnuncio = `
       <!DOCTYPE html>
       <html>
@@ -36,7 +35,6 @@ function BloqueAnuncio({ formato, etiqueta }) {
       </html>
     `;
   } else if (formato === "cuadrado-footer") {
-    // NUEVO: Código de 300x250 inyectado
     ancho = 300;
     alto = 250;
     htmlAnuncio = `
@@ -106,7 +104,7 @@ function BloqueAnuncio({ formato, etiqueta }) {
   );
 }
 // ==========================================
-// LA MÁQUINA DE DINERO TRIPLE (3 PASOS DE 10 SEG)
+// LA MÁQUINA DE DINERO TRIPLE (CON FLECHAS)
 // ==========================================
 function PantallaEspera({ app, cerrar, registrarDescarga }) {
   const [segundos, setSegundos] = useState(10);
@@ -135,10 +133,37 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
   return (
     <div className="overlay-oscuro">
       <div className="ventana-espera">
-        <div className="indicador-pasos">
-          <span className={paso >= 1 ? "paso-activo" : ""}>Verificación 1</span>
-          <span className={paso >= 2 ? "paso-activo" : ""}>Verificación 2</span>
-          <span className={paso >= 3 ? "paso-activo" : ""}>Final</span>
+        <div
+          className="indicador-pasos"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginBottom: "15px",
+            alignItems: "center",
+          }}
+        >
+          <span
+            className={paso >= 1 ? "paso-activo" : ""}
+            style={{ fontWeight: "bold" }}
+          >
+            Verificación 1
+          </span>
+          <span style={{ color: "#4a5568" }}> ➔ </span>
+          <span
+            className={paso >= 2 ? "paso-activo" : ""}
+            style={{ fontWeight: "bold" }}
+          >
+            Verificación 2
+          </span>
+          <span style={{ color: "#4a5568" }}> ➔ </span>
+          <span
+            className={paso >= 3 ? "paso-activo" : ""}
+            style={{ fontWeight: "bold" }}
+          >
+            Final
+          </span>
         </div>
 
         <h2>
@@ -187,7 +212,6 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
     </div>
   );
 }
-
 // ==========================================
 // 1. LA TIENDA PÚBLICA
 // ==========================================
