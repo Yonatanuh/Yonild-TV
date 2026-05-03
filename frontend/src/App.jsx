@@ -5,76 +5,70 @@ import "./App.css";
 // 🚩 DIRECCIÓN LOCAL (Úsala para probar en tu PC)
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
-/// ==========================================
-// COMPONENTE DE MONETIZACIÓN REAL (ADSTERRA)
+// ==========================================
+// COMPONENTE DE MONETIZACIÓN BLINDADO (iFrame)
 // ==========================================
 function BloqueAnuncio({ formato, etiqueta }) {
-  const adRef = useRef(null);
+  let ancho = 320;
+  let alto = 50;
+  let htmlAnuncio = "";
 
-  useEffect(() => {
-    // Si el componente ya tiene el anuncio cargado, no hacemos nada
-    if (adRef.current && adRef.current.children.length === 0) {
-      const scriptConf = document.createElement("script");
-      const scriptInvoke = document.createElement("script");
-
-      if (formato === "banner-horizontal") {
-        // CONFIGURACIÓN PARA EL BANNER 320x50
-        scriptConf.innerHTML = `
-          atOptions = {
-            'key' : '48029dbee5d70c578a7e75dafae3412b',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-          };
-        `;
-        scriptInvoke.src =
-          "https://www.highperformanceformat.com/48029dbee5d70c578a7e75dafae3412b/invoke.js";
-      } else if (formato === "cuadrado-footer") {
-        // AQUÍ VA TU KEY DE 300x250 CUANDO LA TENGAS
-        // Por ahora lo dejamos preparado para tu próxima clave
-        scriptConf.innerHTML = `
-          atOptions = {
-            'key' : 'TU_NUEVA_KEY_CUADRADA_AQUÍ',
-            'format' : 'iframe',
-            'height' : 250,
-            'width' : 300,
-            'params' : {}
-          };
-        `;
-        scriptInvoke.src =
-          "https://www.highperformanceformat.com/TU_NUEVA_KEY_CUADRADA_AQUÍ/invoke.js";
-      }
-
-      adRef.current.appendChild(scriptConf);
-      adRef.current.appendChild(scriptInvoke);
-    }
-  }, [formato]);
+  if (formato === "banner-horizontal") {
+    // Aquí encapsulamos el código real de Adsterra en un mini-documento HTML
+    htmlAnuncio = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: transparent; }</style>
+        </head>
+        <body>
+          <script type="text/javascript">
+            atOptions = {
+              'key' : '48029dbee5d70c578a7e75dafae3412b',
+              'format' : 'iframe',
+              'height' : 50,
+              'width' : 320,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="https://www.highperformanceformat.com/48029dbee5d70c578a7e75dafae3412b/invoke.js"></script>
+        </body>
+      </html>
+    `;
+  } else if (formato === "cuadrado-footer") {
+    ancho = 300;
+    alto = 250;
+    // Este es el espacio reservado limpio mientras me pasas la otra key
+    htmlAnuncio = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; color: #6b7280; font-family: sans-serif; font-size: 14px; background: transparent; border: 1px dashed #374151; height: 248px; }</style>
+        </head>
+        <body>Esperando código cuadrado...</body>
+      </html>
+    `;
+  }
 
   return (
-    <div
-      className={`bloque-anuncio ${formato} flex flex-col items-center my-4`}
-    >
-      <div className="etiqueta-ad text-[10px] bg-gray-800 text-gray-400 px-2 py-1 rounded-t-md">
+    <div className="flex flex-col items-center my-4 w-full">
+      <div className="text-[10px] bg-gray-800 text-gray-400 px-3 py-1 rounded-t-md font-bold uppercase tracking-wider shadow-md z-10">
         PUBLICIDAD {etiqueta}
       </div>
-      {/* Contenedor donde se inyectará el anuncio real */}
-      <div
-        ref={adRef}
-        className="bg-gray-900/50 rounded-b-md overflow-hidden flex justify-center items-center"
-        style={{
-          width: formato === "banner-horizontal" ? "320px" : "300px",
-          height: formato === "banner-horizontal" ? "50px" : "250px",
-          border: "1px dashed #333",
-        }}
-      >
-        {/* Si no hay anuncios cargando, mostramos un mensaje sutil */}
-        <span className="text-[10px] text-gray-700">Cargando anuncio...</span>
-      </div>
+      {/* La caja fuerte donde vive el anuncio */}
+      <iframe
+        srcDoc={htmlAnuncio}
+        width={ancho}
+        height={alto}
+        frameBorder="0"
+        scrolling="no"
+        className="bg-gray-900 rounded-b-md shadow-lg"
+        style={{ border: "none", overflow: "hidden" }}
+        title={`Anuncio ${etiqueta}`}
+      />
     </div>
   );
 }
-
 // ==========================================
 // LA MÁQUINA DE DINERO TRIPLE (3 PASOS DE 10 SEG)
 // ==========================================
