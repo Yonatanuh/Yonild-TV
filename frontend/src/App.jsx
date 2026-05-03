@@ -6,13 +6,92 @@ import "./App.css";
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
 // ==========================================
-// COMPONENTE DE MONETIZACIÓN
+// COMPONENTE DE MONETIZACIÓN (BLINDADO CON IFRAME)
 // ==========================================
 function BloqueAnuncio({ formato, etiqueta }) {
+  let ancho = 320;
+  let alto = 50;
+  let htmlAnuncio = "";
+
+  if (formato === "banner-horizontal") {
+    // Inyectamos tu código real de 320x50 de Adsterra
+    htmlAnuncio = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: transparent; }</style>
+        </head>
+        <body>
+          <script type="text/javascript">
+            atOptions = {
+              'key' : '48029dbee5d70c578a7e75dafae3412b',
+              'format' : 'iframe',
+              'height' : 50,
+              'width' : 320,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="https://www.highperformanceformat.com/48029dbee5d70c578a7e75dafae3412b/invoke.js"></script>
+        </body>
+      </html>
+    `;
+  } else if (formato === "cuadrado-footer") {
+    // Espacio preparado para cuando traigas el código de 300x250
+    ancho = 300;
+    alto = 250;
+    htmlAnuncio = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; color: #a0aec0; font-family: sans-serif; font-size: 14px; background: transparent; border: 1px dashed #4a5568; height: 248px; }</style>
+        </head>
+        <body>Esperando código de anuncio...</body>
+      </html>
+    `;
+  }
+
   return (
-    <div className={`bloque-anuncio ${formato}`}>
-      <div className="etiqueta-ad">PUBLICIDAD {etiqueta}</div>
-      <span className="texto-anuncio">Espacio Reservado ({formato})</span>
+    <div
+      className={`bloque-anuncio ${formato}`}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        margin: "15px 0",
+        width: "100%",
+      }}
+    >
+      <div
+        className="etiqueta-ad"
+        style={{
+          fontSize: "10px",
+          backgroundColor: "#1a202c",
+          color: "#a0aec0",
+          padding: "4px 10px",
+          borderTopLeftRadius: "6px",
+          borderTopRightRadius: "6px",
+          fontWeight: "bold",
+          zIndex: 10,
+        }}
+      >
+        PUBLICIDAD {etiqueta}
+      </div>
+      {/* La caja fuerte (iFrame) donde vive el anuncio sin romper React */}
+      <iframe
+        srcDoc={htmlAnuncio}
+        width={ancho}
+        height={alto}
+        frameBorder="0"
+        scrolling="no"
+        style={{
+          backgroundColor: "#2d3748",
+          borderBottomLeftRadius: "6px",
+          borderBottomRightRadius: "6px",
+          border: "none",
+          overflow: "hidden",
+        }}
+        title={`Anuncio ${etiqueta}`}
+      />
     </div>
   );
 }
@@ -122,7 +201,6 @@ function TiendaPublica() {
     obtenerApps();
   }, []);
 
-
   // Inyección de Adsterra optimizada para React
   useEffect(() => {
     const scriptAdsterra = document.createElement("script");
@@ -131,7 +209,6 @@ function TiendaPublica() {
     scriptAdsterra.async = true;
     document.body.appendChild(scriptAdsterra);
   }, []);
-  
 
   const registrarDescarga = async (id) => {
     try {
@@ -248,6 +325,7 @@ function TiendaPublica() {
     </div>
   );
 }
+
 // ==========================================
 // 2. EL PANEL SECRETO (ADMINISTRADOR)
 // ==========================================
@@ -574,7 +652,6 @@ function GuardianFantasma() {
         background: "#1a202c",
       }}
     >
-      {/* 🚩 ADIÓS ETIQUETA FORM. AHORA ES UN SIMPLE DIV */}
       <div
         style={{
           display: "flex",
