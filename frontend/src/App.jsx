@@ -5,14 +5,72 @@ import "./App.css";
 // 🚩 DIRECCIÓN LOCAL (Úsala para probar en tu PC)
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
-// ==========================================
-// COMPONENTE DE MONETIZACIÓN
+/// ==========================================
+// COMPONENTE DE MONETIZACIÓN REAL (ADSTERRA)
 // ==========================================
 function BloqueAnuncio({ formato, etiqueta }) {
+  const adRef = useRef(null);
+
+  useEffect(() => {
+    // Si el componente ya tiene el anuncio cargado, no hacemos nada
+    if (adRef.current && adRef.current.children.length === 0) {
+      const scriptConf = document.createElement("script");
+      const scriptInvoke = document.createElement("script");
+
+      if (formato === "banner-horizontal") {
+        // CONFIGURACIÓN PARA EL BANNER 320x50
+        scriptConf.innerHTML = `
+          atOptions = {
+            'key' : '48029dbee5d70c578a7e75dafae3412b',
+            'format' : 'iframe',
+            'height' : 50,
+            'width' : 320,
+            'params' : {}
+          };
+        `;
+        scriptInvoke.src =
+          "https://www.highperformanceformat.com/48029dbee5d70c578a7e75dafae3412b/invoke.js";
+      } else if (formato === "cuadrado-footer") {
+        // AQUÍ VA TU KEY DE 300x250 CUANDO LA TENGAS
+        // Por ahora lo dejamos preparado para tu próxima clave
+        scriptConf.innerHTML = `
+          atOptions = {
+            'key' : 'TU_NUEVA_KEY_CUADRADA_AQUÍ',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 300,
+            'params' : {}
+          };
+        `;
+        scriptInvoke.src =
+          "https://www.highperformanceformat.com/TU_NUEVA_KEY_CUADRADA_AQUÍ/invoke.js";
+      }
+
+      adRef.current.appendChild(scriptConf);
+      adRef.current.appendChild(scriptInvoke);
+    }
+  }, [formato]);
+
   return (
-    <div className={`bloque-anuncio ${formato}`}>
-      <div className="etiqueta-ad">PUBLICIDAD {etiqueta}</div>
-      <span className="texto-anuncio">Espacio Reservado ({formato})</span>
+    <div
+      className={`bloque-anuncio ${formato} flex flex-col items-center my-4`}
+    >
+      <div className="etiqueta-ad text-[10px] bg-gray-800 text-gray-400 px-2 py-1 rounded-t-md">
+        PUBLICIDAD {etiqueta}
+      </div>
+      {/* Contenedor donde se inyectará el anuncio real */}
+      <div
+        ref={adRef}
+        className="bg-gray-900/50 rounded-b-md overflow-hidden flex justify-center items-center"
+        style={{
+          width: formato === "banner-horizontal" ? "320px" : "300px",
+          height: formato === "banner-horizontal" ? "50px" : "250px",
+          border: "1px dashed #333",
+        }}
+      >
+        {/* Si no hay anuncios cargando, mostramos un mensaje sutil */}
+        <span className="text-[10px] text-gray-700">Cargando anuncio...</span>
+      </div>
     </div>
   );
 }
@@ -120,6 +178,15 @@ function TiendaPublica() {
 
   useEffect(() => {
     obtenerApps();
+  }, []);
+
+  // Inyección de Adsterra optimizada para React
+  useEffect(() => {
+    const scriptAdsterra = document.createElement("script");
+    scriptAdsterra.src =
+      "https://pl29319410.profitablecpmratenetwork.com/19/a5/b9/19a5b9384abd896b5c6513eeab1c2683.js";
+    scriptAdsterra.async = true;
+    document.body.appendChild(scriptAdsterra);
   }, []);
 
   const registrarDescarga = async (id) => {
