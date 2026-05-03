@@ -135,37 +135,10 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
   return (
     <div className="overlay-oscuro">
       <div className="ventana-espera">
-        {/* 👇 AQUÍ ESTÁ EL INDICADOR VISUAL CORREGIDO 👇 */}
-        <div
-          className="indicador-pasos"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "10px",
-            flexWrap: "wrap",
-            marginBottom: "15px",
-          }}
-        >
-          <span
-            className={paso >= 1 ? "paso-activo" : ""}
-            style={{ fontWeight: "bold" }}
-          >
-            Verificación 1
-          </span>
-          <span style={{ color: "#4a5568" }}> ➔ </span>
-          <span
-            className={paso >= 2 ? "paso-activo" : ""}
-            style={{ fontWeight: "bold" }}
-          >
-            Verificación 2
-          </span>
-          <span style={{ color: "#4a5568" }}> ➔ </span>
-          <span
-            className={paso >= 3 ? "paso-activo" : ""}
-            style={{ fontWeight: "bold" }}
-          >
-            Final
-          </span>
+        <div className="indicador-pasos">
+          <span className={paso >= 1 ? "paso-activo" : ""}>Verificación 1</span>
+          <span className={paso >= 2 ? "paso-activo" : ""}>Verificación 2</span>
+          <span className={paso >= 3 ? "paso-activo" : ""}>Final</span>
         </div>
 
         <h2>
@@ -214,6 +187,7 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
     </div>
   );
 }
+
 // ==========================================
 // 1. LA TIENDA PÚBLICA
 // ==========================================
