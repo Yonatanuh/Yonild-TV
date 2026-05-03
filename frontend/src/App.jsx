@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
-// 🚩 DIRECCIÓN LOCAL (Úsala para probar en tu PC)
+// 🚩 DIRECCIÓN DEL BACKEND (Render)
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
 // ==========================================
-// COMPONENTE DE MONETIZACIÓN (BLINDADO CON IFRAME)
+// COMPONENTE DE MONETIZACIÓN (MODO SEGURO)
 // ==========================================
 function BloqueAnuncio({ formato, etiqueta }) {
   let ancho = 320;
@@ -14,7 +14,6 @@ function BloqueAnuncio({ formato, etiqueta }) {
   let htmlAnuncio = "";
 
   if (formato === "banner-horizontal") {
-    // Código de 320x50 de Adsterra
     htmlAnuncio = `
       <!DOCTYPE html>
       <html>
@@ -36,7 +35,6 @@ function BloqueAnuncio({ formato, etiqueta }) {
       </html>
     `;
   } else if (formato === "cuadrado-footer") {
-    // NUEVO: Código de 300x250 inyectado
     ancho = 300;
     alto = 250;
     htmlAnuncio = `
@@ -105,8 +103,9 @@ function BloqueAnuncio({ formato, etiqueta }) {
     </div>
   );
 }
+
 // ==========================================
-// LA MÁQUINA DE DINERO TRIPLE (3 PASOS DE 10 SEG)
+// LA MÁQUINA DE DINERO TRIPLE (CON FLECHAS)
 // ==========================================
 function PantallaEspera({ app, cerrar, registrarDescarga }) {
   const [segundos, setSegundos] = useState(10);
@@ -135,7 +134,6 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
   return (
     <div className="overlay-oscuro">
       <div className="ventana-espera">
-        {/* 👇 AQUÍ ESTÁ EL INDICADOR VISUAL CORREGIDO 👇 */}
         <div
           className="indicador-pasos"
           style={{
@@ -144,6 +142,7 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
             gap: "10px",
             flexWrap: "wrap",
             marginBottom: "15px",
+            alignItems: "center",
           }}
         >
           <span
@@ -214,6 +213,7 @@ function PantallaEspera({ app, cerrar, registrarDescarga }) {
     </div>
   );
 }
+
 // ==========================================
 // 1. LA TIENDA PÚBLICA
 // ==========================================
@@ -234,10 +234,7 @@ function TiendaPublica() {
 
   useEffect(() => {
     obtenerApps();
-  }, []);
-
-  // Inyección de Adsterra optimizada para React
-  useEffect(() => {
+    // 🔔 INYECCIÓN DEL SOCIAL BAR (VENTANA)
     const scriptAdsterra = document.createElement("script");
     scriptAdsterra.src =
       "https://pl29319410.profitablecpmratenetwork.com/19/a5/b9/19a5b9384abd896b5c6513eeab1c2683.js";
@@ -254,14 +251,9 @@ function TiendaPublica() {
     }
   };
 
-  // ==========================================
-  // 🧹 FILTRO INTELIGENTE ANTI-DUPLICADOS
-  // ==========================================
   const normalizarCategoria = (texto) => {
     if (!texto) return "Otros";
-    // Limpia espacios y pone todo en minúscula
     const limpio = texto.trim().toLowerCase();
-    // Vuelve a poner solo la primera letra en mayúscula
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
   };
 
@@ -271,7 +263,6 @@ function TiendaPublica() {
   ];
 
   const appsFiltradas = apps.filter((app) => {
-    // Escudos de seguridad por si alguna app no tiene nombre temporalmente
     const nombreSeguro = app.nombre ? app.nombre.toLowerCase() : "";
     const busquedaSegura = busqueda ? busqueda.toLowerCase() : "";
     const coincideTexto = nombreSeguro.includes(busquedaSegura);
@@ -324,7 +315,6 @@ function TiendaPublica() {
                 <div className="info-app">
                   <h3>{app.nombre}</h3>
                   <p className="detalles">
-                    {/* 👇 Aquí también aplicamos el filtro para que se vea premium */}
                     v{app.version} • {normalizarCategoria(app.categoria)} • 📥{" "}
                     {app.descargas || 0} descargas
                   </p>
@@ -637,7 +627,7 @@ function PanelAdmin() {
 }
 
 // ==========================================
-// 3. EL GUARDIÁN FANTASMA (ANTI-REINICIOS)
+// 3. EL GUARDIÁN FANTASMA (LOGIN)
 // ==========================================
 function GuardianFantasma() {
   const [autorizado, setAutorizado] = useState(
@@ -655,7 +645,6 @@ function GuardianFantasma() {
         body: JSON.stringify({ password }),
       });
       const datos = await res.json();
-
       if (datos.exito) {
         sessionStorage.setItem("llave_maestra", "autorizado");
         sessionStorage.setItem("token_vip", datos.token);
@@ -712,7 +701,6 @@ function GuardianFantasma() {
         >
           Ingresa la llave maestra
         </p>
-
         <input
           type="password"
           value={password}
@@ -731,7 +719,6 @@ function GuardianFantasma() {
           }}
           autoFocus
         />
-
         {errorMsg && (
           <p
             style={{
@@ -744,7 +731,6 @@ function GuardianFantasma() {
             {errorMsg}
           </p>
         )}
-
         <button
           onClick={hacerLogin}
           style={{
