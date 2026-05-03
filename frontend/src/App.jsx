@@ -14,7 +14,7 @@ function BloqueAnuncio({ formato, etiqueta }) {
   let htmlAnuncio = "";
 
   if (formato === "banner-horizontal") {
-    // Inyectamos tu código real de 320x50 de Adsterra
+    // Código de 320x50 de Adsterra
     htmlAnuncio = `
       <!DOCTYPE html>
       <html>
@@ -36,16 +36,27 @@ function BloqueAnuncio({ formato, etiqueta }) {
       </html>
     `;
   } else if (formato === "cuadrado-footer") {
-    // Espacio preparado para cuando traigas el código de 300x250
+    // NUEVO: Código de 300x250 inyectado
     ancho = 300;
     alto = 250;
     htmlAnuncio = `
       <!DOCTYPE html>
       <html>
         <head>
-          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; color: #a0aec0; font-family: sans-serif; font-size: 14px; background: transparent; border: 1px dashed #4a5568; height: 248px; }</style>
+          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: transparent; }</style>
         </head>
-        <body>Esperando código de anuncio...</body>
+        <body>
+          <script type="text/javascript">
+            atOptions = {
+              'key' : '84ef5e469e5a0f009c7accec24e15a19',
+              'format' : 'iframe',
+              'height' : 250,
+              'width' : 300,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="https://www.highperformanceformat.com/84ef5e469e5a0f009c7accec24e15a19/invoke.js"></script>
+        </body>
       </html>
     `;
   }
@@ -76,7 +87,6 @@ function BloqueAnuncio({ formato, etiqueta }) {
       >
         PUBLICIDAD {etiqueta}
       </div>
-      {/* La caja fuerte (iFrame) donde vive el anuncio sin romper React */}
       <iframe
         srcDoc={htmlAnuncio}
         width={ancho}
@@ -95,7 +105,6 @@ function BloqueAnuncio({ formato, etiqueta }) {
     </div>
   );
 }
-
 // ==========================================
 // LA MÁQUINA DE DINERO TRIPLE (3 PASOS DE 10 SEG)
 // ==========================================
