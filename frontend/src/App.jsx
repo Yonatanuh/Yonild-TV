@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
@@ -6,69 +6,17 @@ import "./App.css";
 const API_URL = "https://yonild-tv-xuper.onrender.com";
 
 // ==========================================
-// COMPONENTE DE MONETIZACIÓN BLINDADO (iFrame)
+// COMPONENTE DE MONETIZACIÓN
 // ==========================================
 function BloqueAnuncio({ formato, etiqueta }) {
-  let ancho = 320;
-  let alto = 50;
-  let htmlAnuncio = "";
-
-  if (formato === "banner-horizontal") {
-    // Aquí encapsulamos el código real de Adsterra en un mini-documento HTML
-    htmlAnuncio = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: transparent; }</style>
-        </head>
-        <body>
-          <script type="text/javascript">
-            atOptions = {
-              'key' : '48029dbee5d70c578a7e75dafae3412b',
-              'format' : 'iframe',
-              'height' : 50,
-              'width' : 320,
-              'params' : {}
-            };
-          </script>
-          <script type="text/javascript" src="https://www.highperformanceformat.com/48029dbee5d70c578a7e75dafae3412b/invoke.js"></script>
-        </body>
-      </html>
-    `;
-  } else if (formato === "cuadrado-footer") {
-    ancho = 300;
-    alto = 250;
-    // Este es el espacio reservado limpio mientras me pasas la otra key
-    htmlAnuncio = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; color: #6b7280; font-family: sans-serif; font-size: 14px; background: transparent; border: 1px dashed #374151; height: 248px; }</style>
-        </head>
-        <body>Esperando código cuadrado...</body>
-      </html>
-    `;
-  }
-
   return (
-    <div className="flex flex-col items-center my-4 w-full">
-      <div className="text-[10px] bg-gray-800 text-gray-400 px-3 py-1 rounded-t-md font-bold uppercase tracking-wider shadow-md z-10">
-        PUBLICIDAD {etiqueta}
-      </div>
-      {/* La caja fuerte donde vive el anuncio */}
-      <iframe
-        srcDoc={htmlAnuncio}
-        width={ancho}
-        height={alto}
-        frameBorder="0"
-        scrolling="no"
-        className="bg-gray-900 rounded-b-md shadow-lg"
-        style={{ border: "none", overflow: "hidden" }}
-        title={`Anuncio ${etiqueta}`}
-      />
+    <div className={`bloque-anuncio ${formato}`}>
+      <div className="etiqueta-ad">PUBLICIDAD {etiqueta}</div>
+      <span className="texto-anuncio">Espacio Reservado ({formato})</span>
     </div>
   );
 }
+
 // ==========================================
 // LA MÁQUINA DE DINERO TRIPLE (3 PASOS DE 10 SEG)
 // ==========================================
@@ -172,15 +120,6 @@ function TiendaPublica() {
 
   useEffect(() => {
     obtenerApps();
-  }, []);
-
-  // Inyección de Adsterra optimizada para React
-  useEffect(() => {
-    const scriptAdsterra = document.createElement("script");
-    scriptAdsterra.src =
-      "https://pl29319410.profitablecpmratenetwork.com/19/a5/b9/19a5b9384abd896b5c6513eeab1c2683.js";
-    scriptAdsterra.async = true;
-    document.body.appendChild(scriptAdsterra);
   }, []);
 
   const registrarDescarga = async (id) => {
